@@ -558,7 +558,7 @@
                 Building scalable web applications & data-driven solutions with
                 <span class="text-accent-glow font-medium">MERN Stack</span>,
                 <span class="text-accent-glow font-medium">Python</span> &
-                <span class="text-accent-glow font-medium">AI/ML</span>
+                <span class="text-accent-glow font-medium">AI</span>
             </p>
 
             <!-- Location -->
@@ -3252,22 +3252,35 @@
                         jsonObject[key] = value;
                     });
 
-                    const response = await fetch('https://formsubmit.co/ajax/tharunprasadm2005@gmail.com', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify(jsonObject)
-                    });
+                    let formSubmitSuccess = false;
+                    
+                    try {
+                        const response = await fetch('https://formsubmit.co/ajax/tharunprasadm2005@gmail.com', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify(jsonObject)
+                        });
 
-                    const result = await response.json().catch(() => ({}));
+                        if (response.ok) {
+                            const result = await response.json().catch(() => ({}));
+                            if (result.success === "true" || result.success === true) {
+                                formSubmitSuccess = true;
+                                showToast('Message sent successfully!');
+                                form.reset();
+                            }
+                        }
+                    } catch (apiError) {
+                        console.warn("FormSubmit API is down, falling back to mailto...", apiError);
+                    }
 
-                    if (response.ok && (result.success === "true" || result.success === true)) {
-                        showToast('Message sent successfully! Check your inbox to activate if this is your first submission.');
-                        form.reset();
-                    } else {
-                        showToast(result.message || 'Transmission failed. Try sending an email directly.');
+                    if (!formSubmitSuccess) {
+                        showToast('Server unavailable. Opening your email client to send...');
+                        const mailtoSubject = encodeURIComponent(jsonObject.subject || 'New Contact Form Message');
+                        const mailtoBody = encodeURIComponent(`Name: ${jsonObject.name}\nEmail: ${jsonObject.email}\n\nMessage:\n${jsonObject.message}`);
+                        window.location.href = `mailto:tharunprasadm2005@gmail.com?subject=${mailtoSubject}&body=${mailtoBody}`;
                     }
                 } catch (error) {
                     showToast('Transmission error. Try sending an email directly.');
